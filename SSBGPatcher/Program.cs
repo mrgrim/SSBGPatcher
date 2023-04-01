@@ -52,7 +52,7 @@ namespace SSBGPatcher
 
             foreach(var ssbgStatic in ssbgEntries.Statics)
             {
-                var contexts = ssbgStatic.AsLink().ResolveAllContexts<ISkyrimMod, ISkyrimModGetter, IStatic, IStaticGetter>(state.LinkCache).ToList();
+                var contexts = ssbgStatic.ToLink().ResolveAllContexts<ISkyrimMod, ISkyrimModGetter, IStatic, IStaticGetter>(state.LinkCache).ToList();
                 var currentWinner = contexts[0];
 
                 // Do not patch winning override from game files or USSEP (Shouldn't even be possible).
@@ -84,12 +84,12 @@ namespace SSBGPatcher
                 }
                 
                 var patched = false;
-                if (currentWinner.Record.Equals(ssbgStatic))
+                if (currentWinner.ModKey == ssbgEntries.ModKey)
                 {
                     // SSBG is the winner. Look for and patch any runner-up.
                     foreach (var context in contexts)
                     {
-                        if (!skipMods.Contains(context.ModKey) && !context.Record.Equals(ssbgStatic))
+                        if (!skipMods.Contains(context.ModKey) && !(context.ModKey == ssbgEntries.ModKey))
                         {
                             var patchedRecord = state.PatchMod.Statics.GetOrAddAsOverride(context.Record);
                             var matName = context.Record.Material;
