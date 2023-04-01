@@ -42,7 +42,7 @@ namespace SSBGPatcher
                     IList<ModKey> modFiles = Program.State.LoadOrder.Keys.ToList();
                     foreach (string modFilter in ModsTrusted.Concat(_defaultModsTrusted))
                     {
-                        if (!modFilter.IsNullOrWhiteSpace())
+                        if (!String.IsNullOrWhiteSpace(modFilter))
                             modKeys.AddRange(modFiles.Where(modKey => modKey.FileName.String.Contains(modFilter, StringComparison.OrdinalIgnoreCase)));
                     }
                     _trustedMods = new HashSet<ModKey>(modKeys);
