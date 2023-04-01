@@ -47,9 +47,6 @@ namespace SSBGPatcher
             var skipMods = Implicits.Get(state.PatchMod.GameRelease).Listings.ToHashSet();
             skipMods.Add(USSEPModKey);
 
-            if (!ssbgEntries.MaterialObjects.TryGetValue(SSBGModKey.MakeFormKey(0x801), out var ssbgMaterial))
-                throw new Exception("Unable to find Stretched Snow Begone material ID.");
-
             foreach(var ssbgStatic in ssbgEntries.Statics)
             {
                 var contexts = ssbgStatic.ToLink().ResolveAllContexts<ISkyrimMod, ISkyrimModGetter, IStatic, IStaticGetter>(state.LinkCache).ToList();
@@ -94,8 +91,9 @@ namespace SSBGPatcher
                             var patchedRecord = state.PatchMod.Statics.GetOrAddAsOverride(context.Record);
                             var matName = context.Record.Material;
                             Console.WriteLine("MATO {0:X8} mapped to SSBG {1:X8} in runner-up STAT {2}:{3}/{4:X8}",
-                                matName.FormKey.ID, ssbgMaterial.FormKey.ID, context.ModKey.FileName, context.Record.EditorID, context.Record.FormKey.ID);
-                            patchedRecord.Material = new FormLink<IMaterialObjectGetter>(ssbgMaterial.FormKey);
+                                matName.FormKey.ID, ssbgStatic.Material.FormKey.ID, context.ModKey.FileName, context.Record.EditorID, context.Record.FormKey.ID);
+                            patchedRecord.Material = new FormLink<IMaterialObjectGetter>(ssbgStatic.Material.FormKey);
+                            patchedRecord.MaxAngle = ssbgStatic.MaxAngle;
                             patched = true;
                             break;
                         }
@@ -107,8 +105,9 @@ namespace SSBGPatcher
                     var patchedRecord = state.PatchMod.Statics.GetOrAddAsOverride(currentWinner.Record);
                     var matName = currentWinner.Record.Material;
                     Console.WriteLine("MATO {0:X8} mapped to SSBG {1:X8} in winning STAT {2}:{3}/{4:X8}",
-                        matName.FormKey.ID, ssbgMaterial.FormKey.ID, currentWinner.ModKey.FileName, currentWinner.Record.EditorID, currentWinner.Record.FormKey.ID);
-                    patchedRecord.Material = new FormLink<IMaterialObjectGetter>(ssbgMaterial.FormKey);
+                        matName.FormKey.ID, ssbgStatic.Material.FormKey.ID, currentWinner.ModKey.FileName, currentWinner.Record.EditorID, currentWinner.Record.FormKey.ID);
+                    patchedRecord.Material = new FormLink<IMaterialObjectGetter>(ssbgStatic.Material.FormKey);
+                    patchedRecord.MaxAngle = ssbgStatic.MaxAngle;
                     patched = true;
                 }
                 
