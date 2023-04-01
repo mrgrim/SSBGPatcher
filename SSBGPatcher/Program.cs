@@ -16,7 +16,7 @@ namespace SSBGPatcher
     {
         static Lazy<Settings> _settings = null!;
         static public Settings settings => _settings.Value;
-		
+        
         public static async Task<int> Main(string[] args)
         {
             return await SynthesisPipeline.Instance
@@ -34,7 +34,7 @@ namespace SSBGPatcher
         {
             get { return _state!; }
         }
-		
+        
         public static void RunPatch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state)
         {
             _state = state;
@@ -42,18 +42,18 @@ namespace SSBGPatcher
             
             if(ssbgEntries is null)
                 throw new Exception("Streteched Snow Begone is not present in the load order, make sure you installed it correctly.");
-			
+            
             //var materialMapping = MaterialMapping(bdsMod.Mod);
             var skipMods = Implicits.Get(state.PatchMod.GameRelease).Listings.ToHashSet();
             skipMods.Add(USSEPModKey);
 
-			if (!ssbgEntries.MaterialObjects.TryGetValue(SSBGModKey.MakeFormKey(0x801), out var ssbgMaterial))
+            if (!ssbgEntries.MaterialObjects.TryGetValue(SSBGModKey.MakeFormKey(0x801), out var ssbgMaterial))
                 throw new Exception("Unable to find Stretched Snow Begone material ID.");
 
             foreach(var ssbgStatic in ssbgEntries.Statics)
             {
-				var contexts = ssbgStatic.AsLink().ResolveAllContexts<ISkyrimMod, ISkyrimModGetter, IStatic, IStaticGetter>(state.LinkCache).ToList();
-				var currentWinner = contexts[0];
+                var contexts = ssbgStatic.AsLink().ResolveAllContexts<ISkyrimMod, ISkyrimModGetter, IStatic, IStaticGetter>(state.LinkCache).ToList();
+                var currentWinner = contexts[0];
 
                 // Do not patch winning override from game files or USSEP (Shouldn't even be possible).
                 if (skipMods.Contains(currentWinner.ModKey))
@@ -82,38 +82,38 @@ namespace SSBGPatcher
                     }
                     continue;
                 }
-				
-				var patched = false;
-				if (currentWinner.Record.Equals(ssbgStatic))
-				{
-					// SSBG is the winner. Look for and patch any runner-up.
-					foreach (var context in contexts)
-					{
-						if (!skipMods.Contains(context.ModKey) && !context.Record.Equals(ssbgStatic))
-						{
-							var patchedRecord = state.PatchMod.Statics.GetOrAddAsOverride(context.Record);
-							var matName = context.Record.Material;
-							Console.WriteLine("MATO {0:X8} mapped to SSBG {1:X8} in runner-up STAT {2}:{3}/{4:X8}",
-								matName.FormKey.ID, ssbgMaterial.FormKey.ID, context.ModKey.FileName, context.Record.EditorID, context.Record.FormKey.ID);
-							patchedRecord.Material = new FormLink<IMaterialObjectGetter>(ssbgMaterial.FormKey);
-							patched = true;
-							break;
-						}
-					}
-				}
-				else
-				{
-					// SSBG is not the winner. Patch the winner.
-					var patchedRecord = state.PatchMod.Statics.GetOrAddAsOverride(currentWinner.Record);
-					var matName = currentWinner.Record.Material;
-					Console.WriteLine("MATO {0:X8} mapped to SSBG {1:X8} in winning STAT {2}:{3}/{4:X8}",
-						matName.FormKey.ID, ssbgMaterial.FormKey.ID, currentWinner.ModKey.FileName, currentWinner.Record.EditorID, currentWinner.Record.FormKey.ID);
-					patchedRecord.Material = new FormLink<IMaterialObjectGetter>(ssbgMaterial.FormKey);
-					patched = true;
-				}
-				
-				if (!patched)
-					Console.WriteLine("STAT {0}:{1}/{2:X8} has no conflicts.", ssbgStatic.FormKey.ModKey.FileName, ssbgStatic.EditorID, ssbgStatic.FormKey.ID);
+                
+                var patched = false;
+                if (currentWinner.Record.Equals(ssbgStatic))
+                {
+                    // SSBG is the winner. Look for and patch any runner-up.
+                    foreach (var context in contexts)
+                    {
+                        if (!skipMods.Contains(context.ModKey) && !context.Record.Equals(ssbgStatic))
+                        {
+                            var patchedRecord = state.PatchMod.Statics.GetOrAddAsOverride(context.Record);
+                            var matName = context.Record.Material;
+                            Console.WriteLine("MATO {0:X8} mapped to SSBG {1:X8} in runner-up STAT {2}:{3}/{4:X8}",
+                                matName.FormKey.ID, ssbgMaterial.FormKey.ID, context.ModKey.FileName, context.Record.EditorID, context.Record.FormKey.ID);
+                            patchedRecord.Material = new FormLink<IMaterialObjectGetter>(ssbgMaterial.FormKey);
+                            patched = true;
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    // SSBG is not the winner. Patch the winner.
+                    var patchedRecord = state.PatchMod.Statics.GetOrAddAsOverride(currentWinner.Record);
+                    var matName = currentWinner.Record.Material;
+                    Console.WriteLine("MATO {0:X8} mapped to SSBG {1:X8} in winning STAT {2}:{3}/{4:X8}",
+                        matName.FormKey.ID, ssbgMaterial.FormKey.ID, currentWinner.ModKey.FileName, currentWinner.Record.EditorID, currentWinner.Record.FormKey.ID);
+                    patchedRecord.Material = new FormLink<IMaterialObjectGetter>(ssbgMaterial.FormKey);
+                    patched = true;
+                }
+                
+                if (!patched)
+                    Console.WriteLine("STAT {0}:{1}/{2:X8} has no conflicts.", ssbgStatic.FormKey.ModKey.FileName, ssbgStatic.EditorID, ssbgStatic.FormKey.ID);
             }
         }
     }
